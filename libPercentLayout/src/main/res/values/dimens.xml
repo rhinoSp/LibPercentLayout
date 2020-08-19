@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+
+    <dimen name="previewWidthPixels">1080px</dimen>
+    <dimen name="previewHeightPixels">1920px</dimen>
+
+</resources>
