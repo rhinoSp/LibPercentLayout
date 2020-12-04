@@ -102,27 +102,13 @@ public class PercentLayoutHelper {
 
     private final ViewGroup mHost;
 
-    private static int mWidthScreen;
-    private static int mHeightScreen;
+    private static int widthPixels;
+    private static int heightPixels;
 
     public PercentLayoutHelper(ViewGroup host) {
         mHost = host;
-        getScreenSize();
-    }
-
-    private void getScreenSize() {
-        mWidthScreen = mHost.getResources().getDimensionPixelSize(R.dimen.previewWidthPixels);
-        mHeightScreen = mHost.getResources().getDimensionPixelSize(R.dimen.previewHeightPixels);
-
-        WindowManager wm = (WindowManager) mHost.getContext().getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        wm.getDefaultDisplay().getMetrics(outMetrics);
-        if (outMetrics.widthPixels > 0) {
-            mWidthScreen = outMetrics.widthPixels;
-        }
-        if (outMetrics.heightPixels > 0) {
-            mHeightScreen = outMetrics.heightPixels;
-        }
+        widthPixels = ScreenUtils.getWidthPixels(host.getContext());
+        heightPixels = ScreenUtils.getHeightPixels(host.getContext());
     }
 
     /**
@@ -262,9 +248,9 @@ public class PercentLayoutHelper {
             case BASE_WIDTH:
                 return widthHint;
             case BASE_SCREEN_WIDTH:
-                return mWidthScreen;
+                return widthPixels;
             case BASE_SCREEN_HEIGHT:
-                return mHeightScreen;
+                return heightPixels;
         }
         return 0;
     }
@@ -511,7 +497,7 @@ public class PercentLayoutHelper {
         return info;
     }
 
-//    private static final String REGEX_PERCENT = "^(([0-9]+)([.]([0-9]+))?|([.]([0-9]+))?)%([s]?[wh]?)$";
+    //    private static final String REGEX_PERCENT = "^(([0-9]+)([.]([0-9]+))?|([.]([0-9]+))?)%([s]?[wh]?)$";
     private static final String REGEX_PERCENT = "^(([-|0-9]+)([.]([0-9]+))?|(-[.]([0-9]+))?)%([s]?[wh]?)$";
 
     /**

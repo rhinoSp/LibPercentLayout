@@ -9,8 +9,8 @@
 ext.aarOutPutDir = "${rootDir}/repositories"
 ext.aarPackageName = "com.rhino.percentlayout"
 ext.aarArtifactId = "libPercentLayout"
-ext.aarVersionName = "1.0"
-ext.aarVersionCode = 1
+ext.aarVersionName = "1.9"
+ext.aarVersionCode = 2
 
 afterEvaluate {
     project.tasks.findAll {
