@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.rhino.percentlayout.PercentLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout
+    <com.rhino.percentlayout.PercentLinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -14,6 +14,16 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:orientation="vertical">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="20dp"
+                android:background="#000000"
+                app:layout_widthPercent="12%h"
+                app:layout_heightRelative="1"
+                app:layout_widthRelative="1" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -29,6 +39,5 @@
                 app:layout_textSizePercent="10%sw" />
 
         </com.rhino.percentlayout.PercentLinearLayout>
-    </LinearLayout>
-
-</LinearLayout>
+    </com.rhino.percentlayout.PercentLinearLayout>
+</com.rhino.percentlayout.PercentLinearLayout>

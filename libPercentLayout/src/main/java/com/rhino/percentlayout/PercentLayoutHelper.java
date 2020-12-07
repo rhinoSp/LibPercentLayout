@@ -22,12 +22,10 @@ import android.support.annotation.NonNull;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.TextView;
 
 import java.lang.reflect.InvocationTargetException;
@@ -81,6 +79,8 @@ import java.util.regex.Pattern;
 public class PercentLayoutHelper {
     private static int layout_widthPercent = R.styleable.PercentLayout_Layout_layout_widthPercent;
     private static int layout_heightPercent = R.styleable.PercentLayout_Layout_layout_heightPercent;
+    private static int layout_widthRelative = R.styleable.PercentLayout_Layout_layout_widthRelative;
+    private static int layout_heightRelative = R.styleable.PercentLayout_Layout_layout_heightRelative;
     private static int layout_marginPercent = R.styleable.PercentLayout_Layout_layout_marginPercent;
     private static int layout_marginLeftPercent = R.styleable.PercentLayout_Layout_layout_marginLeftPercent;
     private static int layout_marginTopPercent = R.styleable.PercentLayout_Layout_layout_marginTopPercent;
@@ -160,12 +160,16 @@ public class PercentLayoutHelper {
                     supportPadding(widthHint, heightHint, view, info);
                     supportMinOrMaxDimesion(widthHint, heightHint, view, info);
 
+                    // Preserve the original layout params, so we can restore them after the measure step.
+                    info.mPreservedParams.width = params.width;
+                    info.mPreservedParams.height = params.height;
+                    info.fillLayoutParams(params, widthHint, heightHint);
+
                     if (params instanceof ViewGroup.MarginLayoutParams) {
                         info.fillMarginLayoutParams((ViewGroup.MarginLayoutParams) params,
                                 widthHint, heightHint);
-                    } else {
-                        info.fillLayoutParams(params, widthHint, heightHint);
                     }
+                    info.fillLayoutParamsRelative(params, widthHint, heightHint);
                 }
             }
         }
@@ -300,7 +304,16 @@ public class PercentLayoutHelper {
             info = checkForInfoExists(info);
             info.heightPercent = percentVal;
         }
-
+        int widthRelative = getIntVal(array, layout_widthRelative);
+        int heightRelative = getIntVal(array, layout_heightRelative);
+        if (widthRelative > 0 && heightRelative > 0) {
+            if (Log.isLoggable(TAG, Log.VERBOSE)) {
+                Log.v(TAG, "widthRelative: " + widthRelative + ", heightRelative: " + heightRelative);
+            }
+            info = checkForInfoExists(info);
+            info.widthRelative = widthRelative;
+            info.heightRelative = heightRelative;
+        }
         return info;
     }
 
@@ -490,6 +503,9 @@ public class PercentLayoutHelper {
         return percentVal;
     }
 
+    public static int getIntVal(TypedArray array, int index) {
+        return array.getInt(index, 0);
+    }
 
     @NonNull
     public static PercentLayoutInfo checkForInfoExists(PercentLayoutInfo info) {
@@ -698,6 +714,9 @@ public class PercentLayoutHelper {
         public PercentVal widthPercent;
         public PercentVal heightPercent;
 
+        public int widthRelative;
+        public int heightRelative;
+
         public PercentVal leftMarginPercent;
         public PercentVal topMarginPercent;
         public PercentVal rightMarginPercent;
@@ -728,21 +747,55 @@ public class PercentLayoutHelper {
         }
 
         /**
+         * Fills {@code ViewGroup.LayoutParams} dimensions based on relative values.
+         */
+        public void fillLayoutParamsRelative(ViewGroup.LayoutParams params, int widthHint,
+                                             int heightHint) {
+            if (widthRelative > 0 && heightRelative > 0) {
+                int width = params.width > 0 ? params.width : widthHint;
+                int height = params.height > 0 ? params.height : heightHint;
+                if (params instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) params;
+                    if (width + p.leftMargin + p.rightMargin >= widthHint) {
+                        width = width - p.leftMargin - p.rightMargin;
+                    }
+                    if (height + p.topMargin + p.bottomMargin == heightHint) {
+                        height = height - p.topMargin - p.bottomMargin;
+                    }
+                }
+                if (ViewGroup.LayoutParams.MATCH_PARENT == params.width || ViewGroup.LayoutParams.WRAP_CONTENT == params.height) {
+                    params.width = width;
+                    params.height = (int) (width * (1.0f * heightRelative / widthRelative));
+                } else if (ViewGroup.LayoutParams.MATCH_PARENT == params.height || ViewGroup.LayoutParams.WRAP_CONTENT == params.width) {
+                    params.width = (int) (height * (1.0f * widthRelative / heightRelative));
+                    params.height = height;
+                }
+            }
+
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "after fillLayoutParams: (" + params.width + ", " + params.height + ")");
+            }
+        }
+
+        /**
          * Fills {@code ViewGroup.LayoutParams} dimensions based on percentage values.
          */
         public void fillLayoutParams(ViewGroup.LayoutParams params, int widthHint,
                                      int heightHint) {
-            // Preserve the original layout params, so we can restore them after the measure step.
-            mPreservedParams.width = params.width;
-            mPreservedParams.height = params.height;
-
+            int widthMargin = 0;
+            int heightMargin = 0;
+            if (params instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) params;
+                widthMargin = p.leftMargin + p.rightMargin;
+                heightMargin = p.topMargin + p.bottomMargin;
+            }
             if (widthPercent != null) {
                 int base = getBaseByModeAndVal(widthHint, heightHint, widthPercent.basemode);
-                params.width = (int) (base * widthPercent.percent);
+                params.width = (int) (base * widthPercent.percent) - widthMargin;
             }
             if (heightPercent != null) {
                 int base = getBaseByModeAndVal(widthHint, heightHint, heightPercent.basemode);
-                params.height = (int) (base * heightPercent.percent);
+                params.height = (int) (base * heightPercent.percent) - heightMargin;
             }
 
             if (Log.isLoggable(TAG, Log.DEBUG)) {
@@ -756,8 +809,6 @@ public class PercentLayoutHelper {
          */
         public void fillMarginLayoutParams(ViewGroup.MarginLayoutParams params, int widthHint,
                                            int heightHint) {
-            fillLayoutParams(params, widthHint, heightHint);
-
             // Preserver the original margins, so we can restore them after the measure step.
             mPreservedParams.leftMargin = params.leftMargin;
             mPreservedParams.topMargin = params.topMargin;

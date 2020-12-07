@@ -48,6 +48,6 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     api rootProject.ext.dependencies["appcompat-v7"]
 
-//    api project(path: ':libOkHttp')
-    implementation(name: 'com.rhino.percentlayout-libPercentLayout-v1.0.1', ext: 'aar')
+    api project(path: ':libPercentLayout')
+//    implementation(name: 'com.rhino.percentlayout-libPercentLayout-v1.0.1', ext: 'aar')
 }
